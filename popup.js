@@ -1,22 +1,31 @@
 import { getActiveTabURL } from "./utils.js";
 
-// adding a new bookmark row to the popup
 const addNewBookmark = (bookmarksElement, bookmark) => {
-  const bookmarkTitleElement = document.createElement("div");
-  const newBookmarkElement = document.createElement("div");
+  console.log(document.getElementById("bookmark-" + bookmark.tim));
+  if (!document.getElementById("bookmark-" + bookmark.time)) {
+    const bookmarkTitleElement = document.createElement("div");
+    const newBookmarkElement = document.createElement("div");
+    const controlsElement = document.createElement("div");
 
-  bookmarkTitleElement.textContent = bookmark.desc;
-  bookmarkTitleElement.className = "bookmark-title";
+    bookmarkTitleElement.textContent = bookmark.desc;
+    bookmarkTitleElement.className = "bookmark-title";
+    controlsElement.className = "bookmark-controls";
 
-  newBookmarkElement.id = "bookmark-" + bookmark.time;
-  newBookmarkElement.className = "bookmark";
-  newBookmarkElement.setAttribute("timestamp", bookmark.time);
+    newBookmarkElement.id = "bookmark-" + bookmark.time;
+    newBookmarkElement.className = "bookmark";
+    newBookmarkElement.setAttribute("timestamp", bookmark.time);
 
-  newBookmarkElement.appendChild(bookmarkTitleElement);
-  bookmarksElement.appendChild(newBookmarkElement);
+    setBookmarkAttributes("play", onPlay, controlsElement);
+    setBookmarkAttributes("delete", onDelete, controlsElement);
+
+    newBookmarkElement.appendChild(bookmarkTitleElement);
+    newBookmarkElement.appendChild(controlsElement);
+    bookmarksElement.appendChild(newBookmarkElement);
+  }
 };
 
-const viewBookmarks = (currentBookmarks = []) => {
+function viewBookmarks(currentBookmarks = []) {
+  console.log("viewBookmarks", currentBookmarks);
   const bookmarksElement = document.getElementById("bookmarks");
   bookmarksElement.innerHTML = "";
 
@@ -28,13 +37,41 @@ const viewBookmarks = (currentBookmarks = []) => {
   } else {
     bookmarksElement.innerHTML = "<i class='row'>No bookmarks to show</div>";
   }
+
+  return;
 };
 
-const onPlay = e => {};
+async function onPlay(e) {
+  const bookmarkTime = e.target.parentNode.parentNode.getAttribute("timestamp");
+  const activeTab = await getActiveTabURL();
 
-const onDelete = e => {};
+  chrome.tabs.sendMessage(activeTab.id, {
+    type: "PLAY",
+    value: bookmarkTime,
+  });
+};
 
-const setBookmarkAttributes =  () => {};
+async function onDelete(e) {
+  const bookmarkTime = e.target.parentNode.parentNode.getAttribute("timestamp");
+  const bookmarkElementToDelete = document.getElementById("bookmark-" + bookmarkTime);
+  bookmarkElementToDelete.parentNode.removeChild(bookmarkElementToDelete);
+
+  const activeTab = await getActiveTabURL();
+
+  chrome.tabs.sendMessage(activeTab.id, {
+    type: "DELETE",
+    value: bookmarkTime,
+  });
+};
+
+const setBookmarkAttributes =  (src, eventListener, controlParentElement) => {
+  const controlElement = document.createElement("img");
+
+  controlElement.src = "assets/" + src + ".png";
+  controlElement.title = src;
+  controlElement.addEventListener("click", eventListener);
+  controlParentElement.appendChild(controlElement);
+};
 
 document.addEventListener("DOMContentLoaded", async () => {
   const activeTab = await getActiveTabURL();

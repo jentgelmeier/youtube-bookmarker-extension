@@ -1,5 +1,7 @@
 /*
-This code will listen for both chrome.tabs.onUpdated and chrome.tabs.onActivated events. There was a bug with the original code where the videoId was not being sent because the message was only being sent for the onUpdate event. This should ensure that the message is being sent to contentScript.js when the URL is updated, and also when you switch between different tabs.
+This code will listen for both chrome.tabs.onUpdated and chrome.tabs.onActivated events.
+There was a bug with the original code where the videoId was not being sent because the message was only being sent for the onUpdate event.
+This should ensure that the message is being sent to contentScript.js when the URL is updated, and also when you switch between different tabs.
 */
 
 const sendMessageToContentScript = (tabId, url) => {
